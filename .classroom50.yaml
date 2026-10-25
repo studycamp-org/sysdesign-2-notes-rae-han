@@ -1,0 +1,12 @@
+schema: "classroom50/repo-config/v1"
+classroom: "sysdesign-2"
+assignment: "notes"
+owner:
+  username: "rae-han"
+  id: 26210770
+  accepted_at: "2026-10-25T02:22:49Z"
+source:
+  owner: "studycamp-org"
+  owner_id: 122613267
+  repo: "sysdesign-2-template"
+  branch: "main"
