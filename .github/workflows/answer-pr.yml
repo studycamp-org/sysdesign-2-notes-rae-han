@@ -1,0 +1,75 @@
+# 챕터 답안(chXX/정리.md)이 main에 push되면, 서로 리뷰할 수 있도록
+# 이 저장소 안에 "답안만 담긴 PR"(chXX-base ← chXX-answer)을 자동으로 만듭니다.
+# 점수·채점 없음. 자동 GITHUB_TOKEN만 사용하며 외부 시크릿이 필요 없습니다.
+# base/answer 브랜치는 해당 챕터 폴더만 담은 orphan 커밋으로 구성합니다
+# (히스토리에 워크플로우 파일이 없어야 GITHUB_TOKEN으로 push가 허용되고,
+#  PR diff에도 답안만 깨끗하게 남습니다).
+name: answer-pr
+on:
+  push:
+    branches: [main]
+    paths: ['ch*/미팅과제.md']
+permissions:
+  contents: write
+  pull-requests: write
+concurrency:
+  group: answer-pr
+  cancel-in-progress: false
+jobs:
+  pr:
+    if: github.repository != 'studycamp-org/sysdesign-2-template'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: create or update chapter answer PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git config user.name "answer-pr-bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE" 2>/dev/null; then
+            BEFORE=$(git rev-parse "$AFTER^" 2>/dev/null || echo "$AFTER")
+          fi
+          CHAPTERS=$(git -c core.quotePath=false diff --name-only "$BEFORE" "$AFTER" -- 'ch*/미팅과제.md' | cut -d/ -f1 | sort -u)
+          echo "chapters: $CHAPTERS"
+          for ch in $CHAPTERS; do
+            # 답안 이전 시점(정리.md가 처음 추가된 커밋의 부모)을 base 내용으로 사용
+            ADD_COMMIT=$(git -c core.quotePath=false log --diff-filter=A --format=%H -1 "$AFTER" -- "${ch}/미팅과제.md" || true)
+            echo "add commit for ${ch}: ${ADD_COMMIT:-none}"
+            BASE_SRC=$BEFORE
+            if [ -n "$ADD_COMMIT" ] && git rev-parse -q --verify "${ADD_COMMIT}^" >/dev/null; then
+              BASE_SRC=$(git rev-parse "${ADD_COMMIT}^")
+            fi
+
+            # base 브랜치: 챕터 폴더만 담은 orphan 커밋 (존재하면 재사용 = 1회 고정)
+            if git fetch -q origin "${ch}-base" 2>/dev/null; then
+              BASE_COMMIT=$(git rev-parse FETCH_HEAD)
+            else
+              export GIT_INDEX_FILE=$(mktemp -u)
+              git read-tree --empty
+              git read-tree --prefix="${ch}/" "${BASE_SRC}:${ch}" 2>/dev/null || true
+              BASE_COMMIT=$(git commit-tree "$(git write-tree)" -m "${ch} 리뷰 base (답안 이전 상태)")
+              unset GIT_INDEX_FILE
+              git push origin "${BASE_COMMIT}:refs/heads/${ch}-base"
+            fi
+
+            # answer 브랜치: base 위에 현재 챕터 폴더 전체를 얹은 orphan 커밋 (매번 재구성)
+            export GIT_INDEX_FILE=$(mktemp -u)
+            git read-tree --empty
+            git read-tree --prefix="${ch}/" "${AFTER}:${ch}"
+            ANSWER_COMMIT=$(git commit-tree "$(git write-tree)" -p "$BASE_COMMIT" -m "${ch} 답안 (main 동기화)")
+            unset GIT_INDEX_FILE
+            git push -f origin "${ANSWER_COMMIT}:refs/heads/${ch}-answer"
+
+            OPEN=$(gh pr list --head "${ch}-answer" --base "${ch}-base" --state open --json number --jq length)
+            if [ "$OPEN" = "0" ]; then
+              gh pr create --base "${ch}-base" --head "${ch}-answer" \
+                --title "[${ch}] 답안 리뷰" \
+                --body "${ch} 답안을 서로 리뷰하기 위한 자동 생성 PR입니다. 점수는 없어요 — inline 코멘트로 의견을 나눠 주세요 👀"
+            fi
+          done

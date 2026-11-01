@@ -2,6 +2,7 @@
 id: chNN
 title: N장 <장 제목>
 summary: <한 줄. 트래픽 성격과 핵심 설계 축>
+questions: 7
 status: draft
 tag: <영문-kebab-case. 결과 문서 태그>
 ---

@@ -2,6 +2,7 @@
 id: ch01
 title: 1장 근접성 서비스
 summary: 주변 사업장 검색. 읽기 위주, 사업장 위치는 거의 안 바뀜. 핵심은 공간 색인과 캐시.
+questions: 7
 status: ready
 tag: proximity-service
 ---

@@ -2,6 +2,7 @@
 id: ch02
 title: 2장 주변 친구
 summary: 반경 안 친구 위치를 몇 초 단위로 보여주기. 쓰기와 팬아웃 위주. 핵심은 웹소켓과 펍/섭 전파, 펍/섭 클러스터 확장.
+questions: 7
 status: draft
 tag: nearby-friends
 ---
