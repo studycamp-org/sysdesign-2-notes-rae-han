@@ -33,7 +33,10 @@ jobs:
           git config user.name "answer-pr-bot"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE" 2>/dev/null; then
-            BEFORE=$(git rev-parse "$AFTER^" 2>/dev/null || echo "$AFTER")
+            if ! BEFORE=$(git rev-parse -q --verify "$AFTER^"); then
+              echo "저장소의 첫 커밋이라 리뷰할 답안이 없습니다."
+              exit 0
+            fi
           fi
           CHAPTERS=$(git -c core.quotePath=false diff --name-only "$BEFORE" "$AFTER" -- 'ch*/미팅과제.md' | cut -d/ -f1 | sort -u)
           echo "chapters: $CHAPTERS"
