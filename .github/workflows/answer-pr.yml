@@ -30,10 +30,15 @@ jobs:
           AFTER: ${{ github.sha }}
         run: |
           set -euo pipefail
+          # GitHub 가 새 브랜치 push 를 일시적으로 거부하는 경우가 있어(실측: 'remote rejected (failed)') 재시도한다
+          push_retry() { for i in 1 2 3; do git push "$@" && return 0; echo "push 재시도 $i/3"; sleep $((i * 3)); done; return 1; }
           git config user.name "answer-pr-bot"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE" 2>/dev/null; then
-            BEFORE=$(git rev-parse "$AFTER^" 2>/dev/null || echo "$AFTER")
+            if ! BEFORE=$(git rev-parse -q --verify "$AFTER^"); then
+              echo "저장소의 첫 커밋이라 리뷰할 답안이 없습니다."
+              exit 0
+            fi
           fi
           CHAPTERS=$(git -c core.quotePath=false diff --name-only "$BEFORE" "$AFTER" -- 'ch*/미팅과제.md' | cut -d/ -f1 | sort -u)
           echo "chapters: $CHAPTERS"
@@ -55,7 +60,7 @@ jobs:
               git read-tree --prefix="${ch}/" "${BASE_SRC}:${ch}" 2>/dev/null || true
               BASE_COMMIT=$(git commit-tree "$(git write-tree)" -m "${ch} 리뷰 base (답안 이전 상태)")
               unset GIT_INDEX_FILE
-              git push origin "${BASE_COMMIT}:refs/heads/${ch}-base"
+              push_retry origin "${BASE_COMMIT}:refs/heads/${ch}-base"
             fi
 
             # answer 브랜치: base 위에 현재 챕터 폴더 전체를 얹은 orphan 커밋 (매번 재구성)
@@ -64,7 +69,7 @@ jobs:
             git read-tree --prefix="${ch}/" "${AFTER}:${ch}"
             ANSWER_COMMIT=$(git commit-tree "$(git write-tree)" -p "$BASE_COMMIT" -m "${ch} 답안 (main 동기화)")
             unset GIT_INDEX_FILE
-            git push -f origin "${ANSWER_COMMIT}:refs/heads/${ch}-answer"
+            push_retry -f origin "${ANSWER_COMMIT}:refs/heads/${ch}-answer"
 
             OPEN=$(gh pr list --head "${ch}-answer" --base "${ch}-base" --state open --json number --jq length)
             if [ "$OPEN" = "0" ]; then
