@@ -1,6 +1,6 @@
 ---
 name: system-grill
-description: 「가상 면접 사례로 배우는 대규모 시스템 설계 기초 2」의 장(chapter)별 설계 grill 세션. 장을 고르고 시나리오를 받은 뒤, 핵심 설계 결정 6~7개(장마다 다름)를 한 번에 하나씩 질문해 사용자가 직접 고르고 근거를 쓰게 하고, 미팅에서 서로 비교하기 쉬운 한 장짜리 설계 문서를 만들어 준다. 현재 지원 장 - 1장 근접성 서비스(Proximity Service), 2장 주변 친구(Nearby Friends), 3장 구글 맵(Google Maps). Use when the user wants to practice/drill a system design chapter from the book, asks for 시스템 설계 grill, 설계 문제 내줘, 근접성 서비스 설계 문제, 근접성 grill, 주변 사업장 검색 설계 연습, 주변 친구 설계 문제, 주변 친구 grill, nearby friends grill, 위치 공유 설계 연습, 구글 맵 설계 문제, 구글맵 grill, 지도 서비스 설계 연습, 내비게이션 설계 문제, 경로 안내 설계, "proximity design grill", "nearby friends design grill", "google maps design grill", or "system-grill".
+description: 「가상 면접 사례로 배우는 대규모 시스템 설계 기초 2」의 장(chapter)별 설계 grill 세션. 장을 고르고 시나리오를 받은 뒤, 핵심 설계 결정 4~7개(장마다 다름)를 한 번에 하나씩 질문해 사용자가 직접 고르고 근거를 쓰게 하고, 미팅에서 서로 비교하기 쉬운 한 장짜리 설계 문서를 만들어 준다. 현재 지원 장 - 1장 근접성 서비스(Proximity Service), 2장 주변 친구(Nearby Friends), 3장 구글 맵(Google Maps), 4장 분산 메시지 큐(Distributed Message Queue). Use when the user wants to practice/drill a system design chapter from the book, asks for 시스템 설계 grill, 설계 문제 내줘, 근접성 서비스 설계 문제, 근접성 grill, 주변 사업장 검색 설계 연습, 주변 친구 설계 문제, 주변 친구 grill, nearby friends grill, 위치 공유 설계 연습, 구글 맵 설계 문제, 구글맵 grill, 지도 서비스 설계 연습, 내비게이션 설계 문제, 경로 안내 설계, 분산 메시지 큐 설계 문제, 메시지 큐 grill, 카프카 설계 연습, 이벤트 스트리밍 설계, "proximity design grill", "nearby friends design grill", "google maps design grill", "message queue design grill", or "system-grill".
 ---
 
 # 시스템 설계 Grill (공용 엔진)
@@ -49,7 +49,7 @@ description: 「가상 면접 사례로 배우는 대규모 시스템 설계 기
 
 - **핵심 질문**(`chapter.md`에 지정, ★): 사용자가 고른 방식에 맞는 세부 질문을 **같은 질문 안에서 하나만** 이어서 묻는다.
 - **묶음 질문**(question-bank에 `(묶음)` 표시): 소항목 **최대 2개**를 한 메시지에 번호로 나열하고 한 번에 답하게 한다.
-- 질문 머리에 `(n/N)`을 표시한다. (예: 3장은 `(2/6)`)
+- 질문 머리에 `(n/N)`을 표시한다. (예: 3장은 `(2/6)`, 4장은 `(2/4)`)
 
 질문 형식:
 
@@ -75,7 +75,7 @@ description: 「가상 면접 사례로 배우는 대규모 시스템 설계 기
 
 1. **근거 점검**: 근거가 빈약하거나("그냥", "책에서 그랬음") 시나리오와 충돌하면 꼬리 질문을 **질문당 최대 한 번** 던진다. 충분하면 생략한다. 꼬리 질문 뒤에는 선택을 바꿀 기회를 한 번 준다.
 2. **피드백은 2줄**: 근거의 좋은 점 하나 + 언급하지 않은 트레이드오프 하나(`좋은 근거의 신호` 참고). 강의하지 않는다.
-3. **기록**: 결과 문서 `결정 N개` 표에 들어갈 형태로 바로 압축해 둔다. 선택은 짧게, 근거와 감수한 것은 **사용자 표현으로 한 줄**. 진행자가 근거를 지어내지 않는다.
+3. **기록**: 결과 문서 `결정 N개` 표에 들어갈 형태로 바로 압축해 둔다. `질문` 칸에는 이번에 실제로 낸 질문(시나리오 수치 반영)을 물음표로 끝나는 한 줄로 줄여 적는다(묶음은 `① … ② …`). 선택은 짧게, 근거와 감수한 것은 **사용자 표현으로 한 줄**. 진행자가 근거를 지어내지 않는다.
 
 특수 입력:
 
