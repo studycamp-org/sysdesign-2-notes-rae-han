@@ -8,7 +8,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 tool="$1"
 shift
-BOOT="broker-1:9092,broker-2:9092,broker-3:9092"
+BOOT="broker-1:9092,broker-2:9092,broker-3:9092,broker-4:9092"
 # 파이프로 입력을 넘길 때(echo ... | ./k ...)는 TTY를 끈다
 T=""
 [ -t 0 ] || T="-T"

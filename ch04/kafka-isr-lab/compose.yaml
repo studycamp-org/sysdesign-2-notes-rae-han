@@ -1,4 +1,4 @@
-# 카프카 4.1 KRaft 클러스터: 컨트롤러 3대(과반수로 메타데이터 합의) + 브로커 3대(ISR로 데이터 복제)
+# 카프카 4.1 KRaft 클러스터: 컨트롤러 3대(과반수로 메타데이터 합의) + 브로커 4대(ISR로 데이터 복제)
 # 명령은 tools 컨테이너에서 실행한다. 브로커를 꺼도 명령을 칠 수 있게 하려는 것이다.
 
 x-kafka: &kafka
@@ -68,6 +68,14 @@ services:
       <<: *broker-env
       KAFKA_NODE_ID: 13
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker-3:9092
+  broker-4:
+    <<: *kafka
+    container_name: broker-4
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *broker-env
+      KAFKA_NODE_ID: 14
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker-4:9092
 
   # 명령 실행용. 카프카를 띄우지 않고 기다리기만 한다
   tools:
