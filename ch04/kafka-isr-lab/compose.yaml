@@ -1,0 +1,78 @@
+# 카프카 4.1 KRaft 클러스터: 컨트롤러 3대(과반수로 메타데이터 합의) + 브로커 3대(ISR로 데이터 복제)
+# 명령은 tools 컨테이너에서 실행한다. 브로커를 꺼도 명령을 칠 수 있게 하려는 것이다.
+
+x-kafka: &kafka
+  image: apache/kafka:4.1.0
+  restart: "no"
+
+x-common-env: &common-env
+  CLUSTER_ID: 4L6g3nShT-eMCtK--X86sw
+  KAFKA_CONTROLLER_QUORUM_VOTERS: 1@controller-1:9093,2@controller-2:9093,3@controller-3:9093
+  KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+  KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+  KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+  KAFKA_HEAP_OPTS: -Xmx256m -Xms256m
+
+x-controller-env: &controller-env
+  <<: *common-env
+  KAFKA_PROCESS_ROLES: controller
+  KAFKA_LISTENERS: CONTROLLER://:9093
+
+x-broker-env: &broker-env
+  <<: *common-env
+  KAFKA_PROCESS_ROLES: broker
+  KAFKA_LISTENERS: PLAINTEXT://:9092
+
+services:
+  controller-1:
+    <<: *kafka
+    container_name: controller-1
+    environment:
+      <<: *controller-env
+      KAFKA_NODE_ID: 1
+  controller-2:
+    <<: *kafka
+    container_name: controller-2
+    environment:
+      <<: *controller-env
+      KAFKA_NODE_ID: 2
+  controller-3:
+    <<: *kafka
+    container_name: controller-3
+    environment:
+      <<: *controller-env
+      KAFKA_NODE_ID: 3
+
+  broker-1:
+    <<: *kafka
+    container_name: broker-1
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *broker-env
+      KAFKA_NODE_ID: 11
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker-1:9092
+  broker-2:
+    <<: *kafka
+    container_name: broker-2
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *broker-env
+      KAFKA_NODE_ID: 12
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker-2:9092
+  broker-3:
+    <<: *kafka
+    container_name: broker-3
+    depends_on: [controller-1, controller-2, controller-3]
+    environment:
+      <<: *broker-env
+      KAFKA_NODE_ID: 13
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker-3:9092
+
+  # 명령 실행용. 카프카를 띄우지 않고 기다리기만 한다
+  tools:
+    <<: *kafka
+    container_name: tools
+    entrypoint: ["sleep", "infinity"]
+    environment:
+      KAFKA_HEAP_OPTS: -Xmx128m

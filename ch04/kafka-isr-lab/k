@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# tools 컨테이너에서 카프카 명령을 실행한다. 브로커 주소는 셋을 다 준다(하나가 꺼져도 나머지로 붙도록).
+# 사용: ./k <도구> [인자...]
+#   ./k topics --describe --topic orders      -> kafka-topics.sh
+#   ./k console-producer --topic orders       -> kafka-console-producer.sh
+#   ./k metadata-quorum describe --status     -> kafka-metadata-quorum.sh
+set -euo pipefail
+cd "$(dirname "$0")"
+tool="$1"
+shift
+BOOT="broker-1:9092,broker-2:9092,broker-3:9092"
+# 파이프로 입력을 넘길 때(echo ... | ./k ...)는 TTY를 끈다
+T=""
+[ -t 0 ] || T="-T"
+if [ "$tool" = "metadata-quorum" ]; then
+  exec docker compose exec $T tools /opt/kafka/bin/kafka-metadata-quorum.sh \
+    --bootstrap-controller controller-1:9093,controller-2:9093,controller-3:9093 "$@"
+fi
+exec docker compose exec $T tools /opt/kafka/bin/kafka-"$tool".sh --bootstrap-server "$BOOT" "$@"
